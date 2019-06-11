@@ -9,7 +9,7 @@ import discord
 from discord.ext import commands
 import datetime
 
-help_embed_image = "HelpEmbed1.PNG"
+help_embed_image = "HelpEmbed.PNG"
 help_markdown_image = "HelpMarkdown.PNG"
 
 save_file = "./save_data.json"
@@ -27,7 +27,6 @@ if os.path.isfile(save_file):
             save_data = {}
 else:
     save_data = {}
-#print(json.dumps(save_data, indent = 4))
 
 def run_setup(data):
     global old_mode
@@ -36,6 +35,8 @@ def run_setup(data):
             old_mode = data[entry]
             if data[entry] == "Webhook":
                 mode.set(mode_options[0])
+                label.config(text = "Enter a Webhook:")
+                label2.config(text = "Enter a Name for the Webhook:")
                 for item in data['Webhook']:
                     if item == "web_or_key":
                         web_or_key.delete(0, tk.END)
@@ -43,8 +44,19 @@ def run_setup(data):
                     elif item == "name_or_channel_id":
                         name_or_channel_id.delete(0, tk.END)
                         name_or_channel_id.insert(0, data['Webhook'][item])
+                    elif item == "title":
+                        title.delete(0, tk.END)
+                        title.insert(0, data['Webhook'][item])
+                    elif item == "embed_link":
+                        embed_link.delete(0, tk.END)
+                        embed_link.insert(0, data['Webhook'][item])
+                    elif item == "description":
+                        description.delete("1.0", tk.END)
+                        description.insert("1.0", data['Webhook'][item])
             elif data[entry] == "Bot":
                 mode.set(mode_options[1])
+                label.config(text = "Enter a Bot Token:")
+                label2.config(text = "Enter a Channel ID To Send To:")
                 for item in data['Bot']:
                     if item == "web_or_key":
                         web_or_key.delete(0, tk.END)
@@ -52,6 +64,15 @@ def run_setup(data):
                     elif item == "name_or_channel_id":
                         name_or_channel_id.delete(0, tk.END)
                         name_or_channel_id.insert(0, data['Bot'][item])
+                    elif item == "title":
+                        title.delete(0, tk.END)
+                        title.insert(0, data['Bot'][item])
+                    elif item == "embed_link":
+                        embed_link.delete(0, tk.END)
+                        embed_link.insert(0, data['Bot'][item])
+                    elif item == "description":
+                        description.delete("1.0", tk.END)
+                        description.insert("1.0", data['Bot'][item])
 
 def save_embed(*event):
     print("Save Embed.")
@@ -80,16 +101,15 @@ def update_mode(*args):
     if mode.get() == "Webhook":
         label.config(text = "Enter a Webhook:")
         label2.config(text = "Enter a Name for the Webhook:")
-        print(old_mode)
-        print(save_data.keys())
         if not old_mode in save_data.keys():
             save_data[old_mode] = {}
-        print(json.dumps(save_data, indent = 4))
         save_data[old_mode] = {
             "web_or_key": web_or_key.get(),
-            "name_or_channel_id": name_or_channel_id.get()
+            "name_or_channel_id": name_or_channel_id.get(),
+            "title": title.get(),
+            "embed_link": embed_link.get(),
+            "description": description.get("1.0", tk.END).strip("\n")
         }
-        print(json.dumps(save_data, indent = 4))
         if "Webhook" in save_data.keys():
             for item in save_data['Webhook']:
                 if item == "web_or_key":
@@ -98,6 +118,15 @@ def update_mode(*args):
                 elif item == "name_or_channel_id":
                     name_or_channel_id.delete(0, tk.END)
                     name_or_channel_id.insert(0, save_data['Webhook'][item])
+                elif item == "title":
+                    title.delete(0, tk.END)
+                    title.insert(0, save_data['Webhook'][item])
+                elif item == "embed_link":
+                    embed_link.delete(0, tk.END)
+                    embed_link.insert(0, save_data['Webhook'][item])
+                elif item == "description":
+                    description.delete("1.0", tk.END)
+                    description.insert("1.0", save_data['Webhook'][item])
         with open(save_file, 'w') as file:
             file.write(json.dumps(save_data, indent = 4))
         old_mode = "Webhook"
@@ -108,7 +137,10 @@ def update_mode(*args):
             save_data[old_mode] = {}
         save_data[old_mode] = {
             "web_or_key": web_or_key.get(),
-            "name_or_channel_id": name_or_channel_id.get()
+            "name_or_channel_id": name_or_channel_id.get(),
+            "title": title.get(),
+            "embed_link": embed_link.get(),
+            "description": description.get("1.0", tk.END).strip("\n")
         }
         if "Bot" in save_data.keys():
             for item in save_data['Bot']:
@@ -118,6 +150,15 @@ def update_mode(*args):
                 elif item == "name_or_channel_id":
                     name_or_channel_id.delete(0, tk.END)
                     name_or_channel_id.insert(0, save_data['Bot'][item])
+                elif item == "title":
+                    title.delete(0, tk.END)
+                    title.insert(0, save_data['Bot'][item])
+                elif item == "embed_link":
+                    embed_link.delete(0, tk.END)
+                    embed_link.insert(0, save_data['Bot'][item])
+                elif item == "description":
+                    description.delete("1.0", tk.END)
+                    description.insert("1.0", save_data['Bot'][item])
         with open(save_file, 'w') as file:
             file.write(json.dumps(save_data, indent = 4))
         old_mode = "Bot"
@@ -176,7 +217,7 @@ def send_test():
             )
             channel = bot.get_channel(int(name_or_channel_id.get()))
             await channel.send(content = content, embed = embed)
-            bot.close()
+            await bot.close()
 
         bot.run(bot.TOKEN, bot = True, reconnect = False)
 
@@ -186,12 +227,18 @@ def on_closing():
     if mode.get() == "Webhook":
         save_data['Webhook'] = {
             "web_or_key": web_or_key.get(),
-            "name_or_channel_id": name_or_channel_id.get()
+            "name_or_channel_id": name_or_channel_id.get(),
+            "title": title.get(),
+            "embed_link": embed_link.get(),
+            "description": description.get("1.0", tk.END).strip("\n")
         }
     elif mode.get() == "Bot":
         save_data['Bot'] = {
             "web_or_key": web_or_key.get(),
-            "name_or_channel_id": name_or_channel_id.get()
+            "name_or_channel_id": name_or_channel_id.get(),
+            "title": title.get(),
+            "embed_link": embed_link.get(),
+            "description": description.get("1.0", tk.END).strip("\n")
         }
     with open(save_file, 'w') as file:
         file.write(json.dumps(save_data, indent = 4))
@@ -219,23 +266,44 @@ root.bind("<Control-m>", show_markdown_help)
 
 root.title("Hero's Embed Tool")
 
-label3 = tk.Label(master = root, text = "Select Webhook or Bot Mode")
-label3.grid(row = 0, column = 0, padx = 5, pady = 2)
+label3 = tk.Label(master = root, text = "Select Webhook or Bot Mode", bg = '#2b2c31')
+label3.grid(row = 0, column = 0, pady = 2, columnspan = 2, sticky = "ew")
 
 label = tk.Label(master = root, text = "Enter a Webhook:")
-label.grid(row = 2, column = 0, padx = 5, pady = 2)
+label.grid(row = 2, column = 0, padx = 5, pady = 2, columnspan = 2)
 
 label2 = tk.Label(master = root, text = "Enter a Name for the Webhook:")
-label2.grid(row = 4, column = 0, pady = 2, padx = 5)
+label2.grid(row = 4, column = 0, pady = 2, padx = 5, columnspan = 2)
 
-web_or_key = tk.Entry(master = root, width = 50, bg = '#484c52', fg = '#b8babc')
-web_or_key.grid(row = 3, column = 0, padx = 5, pady = 2)
+web_or_key = tk.Entry(master = root, width = 70, bg = '#484c52', fg = '#b8babc')
+web_or_key.grid(row = 3, column = 0, padx = 5, pady = 2, columnspan = 2)
 
 test = tk.Button(master = root, width = 25, height = 1, text = "Send Test Embed", command = send_test, bg = '#2b2c31')
-test.grid(row = 100, column = 0, padx = 5, pady = 2)
+test.grid(row = 6, column = 0, padx = 5, pady = 2, columnspan = 2)
 
-name_or_channel_id = tk.Entry(master = root, width = 50, bg = '#484c52', fg = '#b8babc')
-name_or_channel_id.grid(row = 5, column = 0, padx = 5, pady = 2)
+name_or_channel_id = tk.Entry(master = root, width = 70, bg = '#484c52', fg = '#b8babc')
+name_or_channel_id.grid(row = 5, column = 0, padx = 5, pady = 2, columnspan = 2)
+
+label6 = tk.Label(master = root, text = "Build Your Embed", bg = '#2b2c31')
+label6.grid(row = 7, column = 0, columnspan = 2, sticky = "ew", pady = 2)
+
+label4 = tk.Label(master = root, text = "Enter Title (Optional):")
+label4.grid(row = 8, column = 0, padx = 5, pady = 2)
+
+title = tk.Entry(master = root, width = 40, bg = '#484c52', fg = '#b8babc')
+title.grid(row = 8, column = 1, padx = 5, pady = 2)
+
+label5 = tk.Label(master = root, text = "Enter Link (Optional):")
+label5.grid(row = 9, column = 0, padx = 5, pady = 2)
+
+embed_link = tk.Entry(master = root, width = 40, bg = '#484c52', fg = '#b8babc')
+embed_link.grid(row = 9, column = 1, padx = 5, pady = 2)
+
+label7 = tk.Label(master = root, text = "Enter Description (Optional):")
+label7.grid(row = 10, column = 0, padx = 5, pady = 2, columnspan = 2)
+
+description = tk.Text(master = root, width = 50, height = 5, bg = '#484c52', fg = '#b8babc')
+description.grid(row = 11, column = 0, padx = 5, pady = 2, columnspan = 2)
 
 mode = tk.StringVar(master = root)
 
@@ -246,10 +314,8 @@ run_setup(save_data)
 mode.trace("w", update_mode)
 mode_select = tk.OptionMenu(root, mode, *mode_options)
 mode_select.config(width = 20, bg = '#2b2c31')
-mode_select.grid(row = 1, column = 0, padx = 5, pady = 2)
+mode_select.grid(row = 1, column = 0, padx = 5, pady = 2, columnspan = 2)
 
 root.protocol("WM_DELETE_WINDOW", on_closing)
-
-#run_setup(save_data)
 
 root.mainloop()
