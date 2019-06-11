@@ -1,0 +1,11 @@
+{
+    "mode": "Bot",
+    "Webhook": {
+        "web_or_key": "wewe",
+        "name_or_channel_id": "asd"
+    },
+    "Bot": {
+        "web_or_key": "testing",
+        "name_or_channel_id": "asd"
+    }
+}
